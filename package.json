@@ -1,0 +1,28 @@
+{
+  "name": "dapplogisitcs",
+  "version": "1.0.0",
+  "description": "-",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MateoCourmont/dApp_Logistique_SupplyChain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MateoCourmont/dApp_Logistique_SupplyChain/issues"
+  },
+  "homepage": "https://github.com/MateoCourmont/dApp_Logistique_SupplyChain#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "chai": "^4.5.0",
+    "ethers": "^6.13.5",
+    "hardhat": "^2.22.19",
+    "prettier": "^3.5.2",
+    "prettier-plugin-solidity": "^1.4.2"
+  }
+}

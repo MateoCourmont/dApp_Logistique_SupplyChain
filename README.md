@@ -14,8 +14,8 @@
 
 - Rédaction du smart contract : Solidity
 - Création du front-end : React + ethersJS + TailwindCSS
-- BDD Offchain : MongoDB
-- Synchronisation entre la BDD et la blockchain : NodeJS<>
+- BDD Offchain : MySQL
+- Synchronisation entre la BDD et la blockchain : NodeJS
 
 ### Tests et déploiement :
 

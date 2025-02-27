@@ -1,5 +1,27 @@
+/** Logique du contrat :
+ * - L'expéditeur crée une expédition, en spécifiant le récepteur et le prix (status Created).
+ *
+ * - L'ID du transporteur, le lieu de prise en charge, le lieu de livraison,
+ *  l'heure de prise en charge et l'heure de livraison sont
+ *  vides pour être complétés par le transporteur au cours de la livraison.
+ *
+ * - Le transporteur peut accepter l'expédition. Une fois acceptée,
+ *  l'expéditeur ne peut plus modifier et le transporteur devient responsable.
+ *  Il complète alors les informations si dessus (status  "InTransit").
+ *
+ * - Lorsque l'expédition arrive à destination, le transporteur marque
+ *  la livraison comme "Delivered" et le destinataire peut confirmer la livraison (status "Confirmed").
+ *
+ * - Une fois le status "Confirmed", l'expéditeur peut libérer le paiement (status "Completed").
+ *
+ * - L'expédition peut également être annulée par l'expéditeur (avant l'acceptation par le transporteur)
+ *  ou par le destinataire (avant confiramtion de reception (colis endommagé...)), ou par le transporteur.
+ */
+
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.4;
+
+import "hardhat/console.sol";
 
 struct Shipment {
     uint id; // ID unique de l'expedition
@@ -16,112 +38,275 @@ struct Shipment {
 }
 
 enum ShipmentStatus {
+    // Statut de l'expedition
     Created,
+    Accepted,
     InTransit,
     Delivered,
+    Confirmed,
     Completed,
     Canceled
 }
 
-/**
- * Contrôle des expeditons
- * Shipments control
- */
-contract ShipmentControl {
+contract LogisticsDApp {
     mapping(uint => Shipment) public shipments; // Stocke toutes les expéditions
     uint public shipmentCounter; // Compteur pour attribuer un ID unique à chaque expéditions
 
     /**
-     * Créer une nouvelle expédition
-     * Create a new shipment
+     * Fonction pour créer une expédition
      */
-    function createShipment(
-        address _carrier,
-        address _receiver,
-        string memory _pickupLocation,
-        string memory _deliveryLocation,
-        uint256 _price
-    ) public {
-        shipmentCounter++; // Incrémente l'ID pour créer un nouveau colis
-        shipments[shipmentCounter] = Shipment(
-            shipmentCounter,
-            msg.sender, // L'expéditeur est celui qui appelle cette fonction
-            _carrier,
-            _receiver,
-            _pickupLocation,
-            _deliveryLocation,
-            block.timestamp, // Enregistre la date de création
-            0, // Date de livraison vide car le colis n'est pas encore arrivé
-            _price,
-            ShipmentStatus.Created, // Statut initial : "Created"
-            false // Le paiement n'est pas encore libéré
-        );
+    function createShipment(address _receiver, uint _price) public {
+        shipmentCounter++;
+        shipments[shipmentCounter] = Shipment({
+            id: shipmentCounter,
+            sender: msg.sender,
+            carrier: address(0), // Le transporteur est encore vide
+            receiver: _receiver,
+            pickupLocation: "",
+            deliveryLocation: "",
+            pickupTime: 0,
+            deliveryTime: 0,
+            price: _price,
+            status: ShipmentStatus.Created,
+            paymentReleased: false
+        });
     }
 
     /**
-     * Modifie le statut d'une expédition
-     * Update the status of a shipment
+     * Fonction d'acceptartion de l'expédition par le transporteur
      */
-    function updateStatus(uint _id, ShipmentStatus _status) public {
-        Shipment storage shipment = shipments[_id];
-        require(
-            msg.sender == shipment.carrier,
-            "Carrier only can update the status."
-        );
-        shipment.status = _status;
+    function acceptShipment(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
 
-        if (_status == ShipmentStatus.Delivered) {
-            shipment.deliveryTime = block.timestamp;
-        }
-    }
-
-    mapping(uint => uint) public escrowBalances;
-
-    /**
-     * Déposer le paiement de l'expédition
-     * Deposit the payment for the shipment
-     */
-    function depositPayment(uint _id) public payable {
-        Shipment storage shipment = shipments[_id];
-        require(msg.sender == shipment.sender, "Sender only can pay.");
-        require(msg.value == shipment.price, "Montant incorrect.");
-        escrowBalances[_id] += msg.value;
-    }
-
-    /**
-     * Libérer le paiement de l'expédition
-     * Release the payment for the shipment
-     */
-    function releasePayment(uint _id) public {
-        Shipment storage shipment = shipments[_id];
-        require(
-            msg.sender == shipment.receiver,
-            "Receiver only can confirm the delivery."
-        );
-        require(
-            shipment.status == ShipmentStatus.Delivered,
-            "Delivery must be confirmed."
-        );
-        require(!shipment.paymentReleased, "Payment already released.");
-
-        shipment.paymentReleased = true;
-        payable(shipment.carrier).transfer(escrowBalances[_id]);
-    }
-
-    function cancelShipment(uint _id) public {
-        Shipment storage shipment = shipments[_id];
-        require(
-            msg.sender == shipment.sender || msg.sender == shipment.carrier,
-            "Sender or carrier only can cancel the shipment."
-        );
+        // Vérifie que l'expédition est créee
         require(
             shipment.status == ShipmentStatus.Created,
-            "Can only be canceled before delivery."
+            "Expedition already accepted or completed."
         );
 
-        shipment.status = ShipmentStatus.Canceled;
-        if (escrowBalances[_id] > 0) {
-            payable(shipment.sender).transfer(escrowBalances[_id]); // Remboursement de l'expéditeur
-        }
+        // Déclare l'expéditeur comme celui qui a accepté l'expédition
+        shipment.carrier = msg.sender;
+        shipment.status = ShipmentStatus.Accepted;
     }
+
+    /**
+     * Fonction de mise à jour des informations de l'expédition
+     */
+    function updateShipmentDetails(
+        uint256 _shipmentId,
+        string memory _pickupLocation,
+        string memory _deliveryLocation,
+        uint256 _pickupTime,
+        uint256 _deliveryTime
+    ) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition est acceptée
+        require(
+            shipment.status == ShipmentStatus.Accepted,
+            "Shipment not accepted yet."
+        );
+
+        // Vérifie que l'appelant est bien le transporteur
+        require(
+            shipment.carrier == msg.sender,
+            "Only the assigned carrier can update this shipment."
+        );
+
+        // Mettre à jour les informations manquantes de l'expédition
+        shipment.pickupLocation = _pickupLocation;
+        shipment.deliveryLocation = _deliveryLocation;
+        shipment.pickupTime = _pickupTime;
+        shipment.deliveryTime = _deliveryTime;
+        shipment.status = ShipmentStatus.InTransit; // Changer le statut une fois complété
+    }
+
+    /**
+     * Fonction de marquage de livraison par le transporteur
+     */
+    function markAsDeliveredByCarrier(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition est en cours de livraison
+        require(
+            shipment.status == ShipmentStatus.InTransit,
+            "Shipment not in progress."
+        );
+
+        // Vérifie que l'appelant est bien le transporteur
+        require(
+            shipment.carrier == msg.sender,
+            "Only the assigned carrier can deliver the shipment."
+        );
+
+        // Marquer comme livré par le transporteur
+        shipment.status = ShipmentStatus.Delivered;
+        shipment.deliveryTime = block.timestamp; // Heure actuelle de livraison
+    }
+
+    /**
+     * Fonction de confirmation de livraison par le destinataire
+     */
+    function confirmDelivery(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition est livrée
+        require(
+            shipment.status == ShipmentStatus.Delivered,
+            "Shipment not delivered yet."
+        );
+
+        // Vérifie que l'appelant est bien le destinataire
+        require(
+            shipment.receiver == msg.sender,
+            "Only the assigned receiver can confirm delivery."
+        );
+
+        // Le récepteur confirme la livraison
+        shipment.status = ShipmentStatus.Confirmed;
+        shipment.deliveryTime = block.timestamp; // Heure actuelle de livraison
+    }
+
+    /**
+     * Fonction d'annulation d'expédition par l'expéditeur
+     */
+    function cancelShipmentBySender(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition est en cours de livraison
+        require(
+            shipment.status == ShipmentStatus.Created,
+            "Shipment not created yet, or already completed."
+        );
+
+        // Vérifie que l'appelant est bien le destinataire
+        require(
+            shipment.sender == msg.sender,
+            "Only the sender can cancel the shipment."
+        );
+
+        // Annuler l'expedition
+        shipment.status = ShipmentStatus.Canceled;
+    }
+
+    /**
+     * Fonction d'annulation d'expédition par le transporteur
+     */
+    function cancelShipmentByCarrier(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition est en cours de livraison
+        require(
+            shipment.status == ShipmentStatus.InTransit,
+            "Shipment not accepted yet."
+        );
+
+        // Vérifie que l'appelant est bien le transporteur
+        require(
+            shipment.carrier == msg.sender,
+            "Only the assigned carrier can cancel the shipment."
+        );
+
+        // Annuler l'expedition
+        shipment.status = ShipmentStatus.Canceled;
+    }
+
+    /**
+     * Fonction d'annulation d'expédition par le destinataire
+     */
+    function cancelShipmentByReceiver(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition est livrée
+        require(
+            shipment.status == ShipmentStatus.Delivered,
+            "Shipment not delivered yet."
+        );
+
+        // Vérifie que l'appelant est bien le destinataire
+        require(
+            shipment.receiver == msg.sender,
+            "Only the receiver can cancel the shipment."
+        );
+
+        // Annuler l'expedition
+        shipment.status = ShipmentStatus.Canceled;
+    }
+
+    /**
+     * Fonction de libération du paiement par l'expéditeur
+     */
+    function releasePayment(uint256 _shipmentId) public {
+        Shipment storage shipment = shipments[_shipmentId];
+
+        // Vérifie que l'expédition n'est pas déjà payée
+        require(!shipment.paymentReleased, "Payment already released.");
+
+        // Vérifie que l'expédition est confirmée
+        require(
+            shipment.status == ShipmentStatus.Confirmed,
+            "Shipment not confirmed yet."
+        );
+
+        // Vérifie que l'appelant est bien l'expéditeur
+        require(
+            msg.sender == shipment.sender,
+            "Only the sender can release the payment."
+        );
+
+        // Vérifie que le paiement n'a pas déjà été libéré
+        require(!shipment.paymentReleased, "Payment already released.");
+
+        // Libérer le paiement en faveur du transporteur
+        shipment.paymentReleased = true;
+        shipment.status = ShipmentStatus.Completed;
+
+        // Transfert des fonds au transporteur
+        payable(shipment.carrier).transfer(shipment.price);
+    }
+
+    /**
+     * Fonction de retour des informations de l'expédition
+     */
+    function getShipment(
+        uint256 _shipmentId
+    )
+        public
+        view
+        returns (
+            uint256 shipmentId,
+            address sender,
+            address carrier,
+            address receiver,
+            string memory pickupLocation,
+            string memory deliveryLocation,
+            uint256 pickupTime,
+            uint256 deliveryTime,
+            uint price,
+            ShipmentStatus status,
+            bool paymentReleased
+        )
+    {
+        Shipment memory shipment = shipments[_shipmentId];
+
+        return (
+            _shipmentId,
+            shipment.sender,
+            shipment.carrier,
+            shipment.receiver,
+            shipment.pickupLocation,
+            shipment.deliveryLocation,
+            shipment.pickupTime,
+            shipment.deliveryTime,
+            shipment.price,
+            shipment.status,
+            shipment.paymentReleased
+        );
+    }
+
+    // Permet au contrat de recevoir de l'ETH sans appeler de fonction spécifique
+    receive() external payable {}
+
+    // Permet au contrat de recevoir de l'ETH même si un mauvais selector est envoyé
+    fallback() external payable {}
 }
