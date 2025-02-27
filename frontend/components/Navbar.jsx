@@ -9,7 +9,7 @@ const Navbar = () => {
     if (window.ethereum) {
       try {
         // Demander la connexion à MetaMask
-        const provider = new ethers.BrowserProvider(window.ethereum); 
+        const provider = new ethers.BrowserProvider(window.ethereum);
         // Demande à MetaMask de lister les comptes
         await window.ethereum.request({ method: "eth_requestAccounts" });
 
@@ -31,25 +31,24 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex justify-between items-center p-6 h-28 w-full bg-white">
+    <nav className="flex justify-between items-center px-8 py-2 h-24 w-full gap-40">
       <div>
-        <p></p>
       </div>
       <div>
-    {/* Affiche le bouton de connexion si aucun compte n'est connecté */}
-    {!account && (
-      <button className="header-btn" onClick={connectWallet}>
-        Connect to wallet &gt;
-      </button>
-    )}
+        {/* Affiche le bouton de connexion si aucun compte n'est connecté */}
+        {!account && (
+          <button className="btn" onClick={connectWallet}>
+            Connect to wallet &gt;
+          </button>
+        )}
 
-    {/* Affiche l'adresse si un compte est connecté */}
-    {account && (
-        <button className="header-btn" onClick={disconnectWallet}>{account}</button>
-    )}
-     </div>
-  </nav>
- 
+        {/* Affiche l'adresse si un compte est connecté */}
+        {account && (
+          <button className="btn" onClick={disconnectWallet}>{account}</button>
+        )}
+      </div>
+    </nav>
+
   );
 };
 

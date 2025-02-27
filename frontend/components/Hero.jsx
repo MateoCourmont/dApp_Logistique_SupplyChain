@@ -1,24 +1,27 @@
 const Hero = () => {
     return (
-        <div className="hero w-full h-2/3 flex items-start justify-between px-8 py-12 pl-20">
+        <section id="_hero">
 
-            <div className="hero-text-content flex flex-col items-start justify-center gap-6 w-full md:w-1/2">
-                <h1 className="hero-title text-4xl md:text-5xl font-bold leading-tight">
-                    Welcome to Xchain
+            <div className="hero-left">
+                <h1 className="hero-title">
+                    MANAGE YOUR SUPPLY CHAIN LIKE NEVER
                 </h1>
-                <p className="hero-description text-lg md:text-xl text-start max-w-lg">
+                <p className="hero-description">
                     The blockchain-based logistics platform which follows steps in the supply chain.
                 </p>
+                <button className="btn">
+                    Start to work!
+                </button>
             </div>
 
-            <div className="hero-img-content w-full md:w-1/2">
+            <div className="hero-right">
                 <img
-                    src="./src/assets/images/hero-img.jpg"
+                    src="./src/assets/images/driver.avif"
                     alt="Hero Image"
-                    className="hero-img max-w-full h-3/4"
+                    className="hero-img"
                 />
             </div>
-        </div>
+        </section>
     );
 };
 
