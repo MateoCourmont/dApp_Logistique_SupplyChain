@@ -266,6 +266,31 @@ contract LogisticsDApp {
     }
 
     /**
+     * Fonction de recherche d'expéditions par ID
+     */
+    function getShipmentById(
+        uint256 _shipmentId
+    )
+        public
+        view
+        returns (
+            uint256 shipmentId,
+            address sender,
+            address carrier,
+            address receiver,
+            string memory pickupLocation,
+            string memory deliveryLocation,
+            uint256 pickupTime,
+            uint256 deliveryTime,
+            uint price,
+            ShipmentStatus status,
+            bool paymentReleased
+        )
+    {
+        return getShipment(_shipmentId);
+    }
+
+    /**
      * Fonction de retour des informations de l'expédition
      */
     function getShipment(
