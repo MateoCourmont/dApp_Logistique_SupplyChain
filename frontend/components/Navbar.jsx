@@ -1,19 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { ThemeContext } from '../src/ThemeContext';
 import { ethers } from "ethers";
 
 const Navbar = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext); 
   const [account, setAccount] = useState(null);
 
   // Fonction pour se connecter à MetaMask
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
-        // Demander la connexion à MetaMask
         const provider = new ethers.BrowserProvider(window.ethereum);
-        // Demande à MetaMask de lister les comptes
         await window.ethereum.request({ method: "eth_requestAccounts" });
-
-        // Obtenir le signer et l'adresse du compte connecté
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
         setAccount(address);
@@ -26,29 +24,39 @@ const Navbar = () => {
     }
   };
 
+  // Pas vraiment une deconnexion pour le moment
   const disconnectWallet = () => {
     setAccount(null); // Réinitialiser l'état du compte
   };
 
   return (
-    <nav className="flex justify-between items-center px-8 py-2 h-24 w-full gap-40">
-      <div>
-      </div>
-      <div>
-        {/* Affiche le bouton de connexion si aucun compte n'est connecté */}
-        {!account && (
-          <button className="btn" onClick={connectWallet}>
-            Connect to wallet &gt;
+    <header>
+      <nav>
+        <div className="theme-toggle">
+          {/* Toggle bouton pour le mode sombre et clair */}
+          <button onClick={toggleTheme}>
+            {theme === 'dark' ? (
+              <img src="./src/assets/images/sun.png" alt="Switch to light mode" id="sun_icon"/>
+            ) : (
+              <img src="./src/assets/images/moon.png" alt="Switch to dark mode" id="moon_icon"/>
+            )}
           </button>
-        )}
+        </div>
+        <div className="wallet_button">
+          {!account && (
+            <button onClick={connectWallet}>
+              <img id="metamask_connect" src="./src/assets/images/MetaMask_Fox.png" alt="metamask connect" />
+            </button>
+          )}
 
-        {/* Affiche l'adresse si un compte est connecté */}
-        {account && (
-          <button className="btn" onClick={disconnectWallet}>{account}</button>
-        )}
-      </div>
-    </nav>
-
+          {account && (
+            <button onClick={disconnectWallet}>
+              <img id="metamask_disconnect" src="./src/assets/images/MetaMask_disconnect.png" alt="metamask disconnect" />
+            </button>
+          )}
+        </div>
+      </nav>
+    </header>
   );
 };
 

@@ -1,11 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 :root {
-  --accent_color: hsl(224, 54%, 30%);
-  --accent_color_hover: hsl(224, 54%, 40%);
+  --accent_color: hsl(276, 100%, 70%);
+  --accent_color_hover: hsl(276, 100%, 60%);
   --background_color: hsl(0, 0%, 100%);
   --text_color: hsl(0, 0%, 0%);
   --fw-title: 700;
@@ -19,52 +20,136 @@
   --fs-xl: 2rem;
   --fs-xxl: 3rem;
   --fs-3xl: 4rem;
+  --ff: 'Poppins', sans-serif;
   /*dark-mode*/
-  --dark_accent_color: hsl(224, 54%, 70%);
-  --dark_accent_color_hover: hsl(224, 54%, 60%);
+  --dark_accent_color: hsl(276, 100%, 30%);
+  --dark_accent_color_hover: hsl(276, 100%, 40%);
   --dark_background_color: hsl(0, 0%, 0%);
   --dark_text_color: hsl(0, 0%, 100%);
 }
 
 body {
+  font-family: var(--ff);
+  overflow-x: hidden;
+}
+
+.light {
   background-color: var(--background_color);
-  font-family: sans-serif;
+}
+
+.dark {
+  background-color: var(--dark_background_color);
 }
 
 .btn {
   max-width: 300px;
   white-space: nowrap;
   text-overflow: ellipsis;
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   background-color: var(--accent_color);
   color: hsl(0, 0%, 100%);
   font-weight: var(--fw-text);
-  width: 200px;
   padding: 0.5rem 1rem 0.5rem 1rem;
   font-size: var(--fs-md);
+  box-shadow: 3px 4px 9px 3px rgba(0, 0, 0, 0.39);
+  transition: all 0.5s ease-in-out;
+}
+
+.btn-dark {
+  background-color: var(--dark_accent_color);
+}
+
+.btn:hover {
+  background-color: var(--accent_color_hover);
+  transform: scale(1.03);
+}
+
+.btn-dark:hover {
+  background-color: var(--dark_accent_color_hover);
 }
 
 /*Navbar.jsx*/
 
-.btn:hover {
-  transition: all 0.3s ease-in-out;
-  background-color: var(--accent_color_hover);
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 7rem;
+  width: 100%;
+  gap: 2rem;
+  padding: 2rem 3rem;
 }
 
-#sun_btn {
+nav {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  width: 100%;
+  gap: 32px;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+}
+
+#sun_icon,
+#moon_icon {
+  width: 23px;
+  height: 23px;
+  transition: all 0.5s ease-in-out;
+}
+
+#sun_icon:hover,
+#moon_icon:hover {
+  rotate: 15deg;
+  transform: scale(1.1);
+}
+
+.wallet_button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+}
+
+#metamask_connect {
+  width: 28px;
+  height: 28px;
+  transition: all 0.5s ease-in-out;
+}
+
+#metamask_disconnect {
+  width: 55px;
+  height: 50px;
+  transition: all 0.5s ease-in-out;
+}
+
+#metamask_connect:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+  rotate: 15deg;
+}
+
+#metamask_disconnect:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+  rotate: 15deg;
+}
+
+#light_btn {
   width: 30px;
   height: 30px;
   fill: var(--accent_color);
 }
 
-#sun_btn:hover {
-  transition: all 0.3s ease-in-out;
+#light_btn:hover {
+  transition: all 0.5s ease-in-out;
   fill: var(--accent_color_hover);
-}
-
-#logo {
-  font-size: var(--fs-xl);
-  fill: var(--text_color);
 }
 
 /*Hero.jsx*/
@@ -82,6 +167,7 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 2rem;
+  width: 65%;
 }
 
 .hero-title {
@@ -92,6 +178,10 @@ body {
   letter-spacing: -3px;
 }
 
+.hero-title-dark {
+  color: var(--dark_text_color);
+}
+
 .hero-description {
   color: var(--text_color);
   font-size: var(--fs-md);
@@ -99,14 +189,110 @@ body {
   line-height: 2rem;
 }
 
+.hero-description-dark {
+  color: var(--dark_text_color);
+}
+
 .hero-img {
-  width: 800px;
+  width: 900px;
   height: auto;
+  border-radius: 1rem;
 }
 
 /*MainSection*/
 
 #_main-section {
-  background-color: var(--background_color);
   height: 100vh;
+}
+
+@media (max-width: 1440px) {
+  .hero-img {
+    width: 1000px;
+    height: 600px;
+    object-fit: cover;
+  }
+
+  .hero-left {
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  #_hero {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem 3rem 2rem;
+    text-align: center;
+    gap: 4rem;
+  }
+
+  .hero-left {
+    gap: 2rem;
+    align-items: center;
+  }
+}
+
+@media (max-width: 500px) {
+  .btn {
+    max-width: 200px;
+    font-size: var(--fs-xs);
+    box-shadow: 2px 3px 7px 2px rgba(0, 0, 0, 0.39);
+  }
+
+  header {
+    height: 5rem;
+    padding: 1.5rem;
+  }
+
+  #_hero {
+    padding: 1rem;
+  }
+
+  .hero-title {
+    font-size: var(--fs-xl);
+    font-weight: 800;
+    line-height: 2.5rem;
+    letter-spacing: -1px;
+    width: 100%;
+  }
+
+  .hero-description {
+    font-size: var(--fs-xs);
+    line-height: 1.5rem;
+  }
+
+  .hero-left {
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .hero-img {
+    width: 350px;
+    height: 350px;
+  }
+
+  nav {
+    gap: 0.5rem;
+  }
+
+  #metamask_connect,
+  #metamask_disconnect {
+    transform: scale(0.8);
+  }
+
+  #metamask_connect:hover,
+  #metamask_disconnect:hover {
+    transform: scale(0.9);
+  }
+
+  #sun_icon,
+  #moon_icon {
+    transform: scale(0.8);
+  }
+
+  #sun_icon:hover,
+  #moon_icon:hover {
+    transform: scale(0.9);
+  }
 }
