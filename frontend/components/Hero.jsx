@@ -5,6 +5,11 @@ const Hero = () => {
   // Accéder au contexte du thème
   const { theme } = useContext(ThemeContext);
 
+  const handleStartClick = () => {
+    // Défilement vers _main-section
+    document.getElementById('_main-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section id="_hero" >
       <div className="hero-left">
@@ -12,10 +17,10 @@ const Hero = () => {
           MANAGE YOUR SUPPLY CHAIN LIKE NEVER
         </h1>
         <p className={`hero-description ${theme === 'dark' ? 'hero-description-dark' : 'hero-description-light'}`}>
-          The blockchain-based logistics platform which follows steps in the supply chain.
+          The blockchain-based logistics platform which helps you with the supply chain.
         </p>
-        <button className={`btn ${theme === 'dark' ? 'btn-dark' : 'btn'}`}>
-          Start to work now!
+        <button id="start-btn" className={`btn ${theme === 'dark' ? 'btn-dark' : 'btn'}`} onClick={handleStartClick}>
+          Start working now!
         </button>
       </div>
 

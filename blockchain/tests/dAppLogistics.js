@@ -25,17 +25,20 @@ describe("LogisticsDApp", function () {
   it("should allow a sender to create a shipment", async function () {
 
     // Créer une expédition
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
 
     // Vérifier le contenu de l'expédition
     const shipment = await logisticsDApp.getShipment(1);
     expect(shipment.sender).to.equal(sender.address);
     expect(shipment.receiver).to.equal(receiver.address);
     expect(shipment.price).to.equal(100);
+    expect(shipment.pickupLocation).to.equal("Paris");
+    expect(shipment.deliveryLocation).to.equal("Nantes");
+    expect(shipment.status).to.equal(0); // Created
   });
 
   it("should allow a carrier to accept a shipment", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
 
     // Acceptation de l'expédition par le transporteur
     await logisticsDApp.connect(carrier).acceptShipment(1);
@@ -46,37 +49,35 @@ describe("LogisticsDApp", function () {
   });
 
   it("should allow the carrier to update shipment details", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
     await logisticsDApp.connect(carrier).acceptShipment(1);
 
     // Mise à jour des informations de l'expédition
     await logisticsDApp
       .connect(carrier)
-      .updateShipmentDetails(1, "Paris", "Nantes", 1625250000, 1625300000);
+      .updateShipmentDetails(1, 1625250000, 1625300000);
 
     const shipment = await logisticsDApp.getShipment(1);
-    expect(shipment.pickupLocation).to.equal("Paris");
-    expect(shipment.deliveryLocation).to.equal("Nantes");
     expect(shipment.status).to.equal(2); // InTransit
   });
 
   it("should allow the carrier to mark shipment as delivered", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
     await logisticsDApp.connect(carrier).acceptShipment(1);
     await logisticsDApp
       .connect(carrier)
-      .updateShipmentDetails(1, "Paris", "Nantes", 1625250000, 1625300000);
+      .updateShipmentDetails(1, 1625250000, 1625300000);
     await logisticsDApp.connect(carrier).markAsDeliveredByCarrier(1);
     const shipment = await logisticsDApp.getShipment(1);
     expect(shipment.status).to.equal(3); // Delivered
   });
 
   it("should allow the receiver to confirm delivery", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
     await logisticsDApp.connect(carrier).acceptShipment(1);
     await logisticsDApp
       .connect(carrier)
-      .updateShipmentDetails(1, "Paris", "Nantes", 1625250000, 1625300000);
+      .updateShipmentDetails(1, 1625250000, 1625300000);
     await logisticsDApp.connect(carrier).markAsDeliveredByCarrier(1);
     await logisticsDApp.connect(receiver).confirmDelivery(1);
     const shipment = await logisticsDApp.getShipment(1);
@@ -84,18 +85,18 @@ describe("LogisticsDApp", function () {
   });
 
   it("should allow the sender to release the payment", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, ethers.parseEther("1"));
+    await logisticsDApp.connect(sender).createShipment(receiver.address, ethers.parseEther("1"), "Paris", "Nantes");
     await logisticsDApp.connect(carrier).acceptShipment(1);
-    await logisticsDApp
-      .connect(carrier)
-      .updateShipmentDetails(1, "Paris", "Nantes", 1625250000, 1625300000);
+    await logisticsDApp.connect(carrier).updateShipmentDetails(1, 1625250000, 1625300000);
     await logisticsDApp.connect(carrier).markAsDeliveredByCarrier(1);
     await logisticsDApp.connect(receiver).confirmDelivery(1);
+
+    // Récupérer les détails de l'expédition et vérifier l'état et le paiement
     let shipment = await logisticsDApp.getShipment(1);
     expect(shipment.status).to.equal(4); // Confirmed
     expect(shipment.paymentReleased).to.equal(false);
 
-    // Envoyer des fonds au contrat
+    // Envoyer des fonds au contrat (1 ether)
     await sender.sendTransaction({
       to: logisticsDApp.target,
       value: ethers.parseEther("1")
@@ -104,40 +105,41 @@ describe("LogisticsDApp", function () {
     // Libérer le paiement
     await logisticsDApp.connect(sender).releasePayment(1);
 
+    // Vérifier que le paiement a été libéré
     shipment = await logisticsDApp.getShipment(1);
     expect(shipment.paymentReleased).to.equal(true);
     expect(shipment.status).to.equal(5); // Completed
 
-    // Vérifier que l'on ne peut plus libérer le paiement après
+    // Vérifier qu'on ne peut plus libérer le paiement après
     await expect(
         logisticsDApp.connect(sender).releasePayment(1)
     ).to.be.revertedWith("Payment already released.");
-  });
+});
 
   it("should allow the sender to cancel the shipment", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
     await logisticsDApp.connect(sender).cancelShipmentBySender(1);
     const shipment = await logisticsDApp.getShipment(1);
     expect(shipment.status).to.equal(6); // Cancelled
   });
 
   it("should allow the carrier to cancel the shipment", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
     await logisticsDApp.connect(carrier).acceptShipment(1);
     await logisticsDApp
       .connect(carrier)
-      .updateShipmentDetails(1, "Paris", "Nantes", 1625250000, 1625300000);
+      .updateShipmentDetails(1, 1625250000, 1625300000);
     await logisticsDApp.connect(carrier).cancelShipmentByCarrier(1);
       const shipment = await logisticsDApp.getShipment(1);
       expect(shipment.status).to.equal(6); // Cancelled
   });
 
   it("should allow the receiver to cancel the shipment", async function () {
-    await logisticsDApp.connect(sender).createShipment(receiver.address, 100);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, 100, "Paris", "Nantes");
     await logisticsDApp.connect(carrier).acceptShipment(1);
     await logisticsDApp
       .connect(carrier)
-      .updateShipmentDetails(1, "Paris", "Nantes", 1625250000, 1625300000);
+      .updateShipmentDetails(1, 1625250000, 1625300000);
     await logisticsDApp.connect(carrier).markAsDeliveredByCarrier(1);
     await logisticsDApp.connect(receiver).cancelShipmentByReceiver(1);
     const shipment = await logisticsDApp.getShipment(1);
@@ -146,10 +148,12 @@ describe("LogisticsDApp", function () {
 
   it("should simulate a shipment and fetch its details", async function () {
     // Définition du prix
-    const price = ethers.parseEther("0.3"); //
+    const price = ethers.parseEther("0.3"); 
+    const pickupLocation = "Paris";
+    const deliveryLocation = "Nantes";
 
     // Création de l'expédition
-    await logisticsDApp.connect(sender).createShipment(receiver.address, price);
+    await logisticsDApp.connect(sender).createShipment(receiver.address, price, pickupLocation, deliveryLocation);
     const shipmentId = 1; 
 
     // Acceptation de l'expédition par le transporteur
@@ -158,8 +162,6 @@ describe("LogisticsDApp", function () {
     // Mise à jour des informations de l'expédition par le transporteur
     await logisticsDApp.connect(carrier).updateShipmentDetails(
       shipmentId,
-      "Paris", // Pickup location
-      "Nantes", // Delivery location
       1234567890,    // Pickup time (timestamp simulé)
       1234567895     // Delivery time (timestamp simulé)
     );

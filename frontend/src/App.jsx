@@ -10,7 +10,7 @@ function App() {
     <ThemeProvider>
         <NavBar />
         <Hero />
-        <MainSection />
+        <MainSection /> 
     </ThemeProvider>
   );
 }
