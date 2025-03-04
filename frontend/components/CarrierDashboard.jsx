@@ -1,28 +1,80 @@
 import React, { useContext } from 'react';
+import Slider from 'react-slick';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import { ThemeContext } from '../src/ThemeContext'; 
 
 const CarrierDashboard = () => {
     // Accéder au contexte du thème
     const { theme } = useContext(ThemeContext);
 
-    return (   
+    const settings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 4,
+        slidesToScroll: 1,
+        swipe: false,
+        draggable: false,
+        responsive: [
+            {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 3,
+                    slidesToScroll: 1,
+                },
+            },
+            {
+                breakpoint: 769,
+                settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1,  
+                }
+            },
+            {
+                breakpoint: 501,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                },
+            },
+        ],
+    };
+
+    return (
         <div className='dashboards-container'>
-            <div className={`cards ${theme === 'dark' ? 'cards-dark' : 'cards-light'}`}>
-                <img src="./src/assets/images/create-exp.jpg" alt="card image" />
-                <div className='card-text'>
-                    <h1 className={`card-title ${theme === 'dark' ? 'card-title-dark' : 'card-title-light'}`}>Create an expedition</h1>
-                    <p className='card-description'>Specify the details of your expedition :
-                        <ul>
-                            <li>Receiver address</li>
-                            <li>Pickup location</li>
-                            <li>Delivery location</li>
-                            <li>Price</li>
-                        </ul>
-                    </p>
+            <Slider {...settings}>
+                <div className={`cards ${theme === 'dark' ? 'cards-dark' : 'cards-light'}`}>
+                    <img src="./src/assets/images/create-exp.jpg" alt="card image" />
+                    <div className='card-text'>
+                        <h1 className={`card-title ${theme === 'dark' ? 'card-title-dark' : 'card-title-light'}`}>Join a shipment</h1>
+                        <p className='card-description'></p>
+                    </div>
                 </div>
-            </div>
-        </div> 
-    ); 
+                <div className={`cards ${theme === 'dark' ? 'cards-dark' : 'cards-light'}`}>
+                    <img src="./src/assets/images/create-exp.jpg" alt="card image" />
+                    <div className='card-text'>
+                        <h1 className={`card-title ${theme === 'dark' ? 'card-title-dark' : 'card-title-light'}`}>Get a shipment by ID</h1>
+                        <p className='card-description'></p>
+                    </div>
+                </div>
+                <div className={`cards ${theme === 'dark' ? 'cards-dark' : 'cards-light'}`}>
+                    <img src="./src/assets/images/create-exp.jpg" alt="card image" />
+                    <div className='card-text'>
+                        <h1 className={`card-title ${theme === 'dark' ? 'card-title-dark' : 'card-title-light'}`}>Complete shipment information</h1>
+                        <p className='card-description'></p>
+                    </div>
+                </div>
+                <div className={`cards ${theme === 'dark' ? 'cards-dark' : 'cards-light'}`}>
+                    <img src="./src/assets/images/create-exp.jpg" alt="card image" />
+                    <div className='card-text'>
+                        <h1 className={`card-title ${theme === 'dark' ? 'card-title-dark' : 'card-title-light'}`}>User profile</h1>
+                        <p className='card-description'></p>
+                    </div>
+                </div>
+            </Slider>
+        </div>
+    )
 };
 
-export default CarrierDashboard; 
+export default CarrierDashboard;
