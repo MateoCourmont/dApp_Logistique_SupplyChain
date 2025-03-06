@@ -3,10 +3,12 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ThemeContext } from '../src/ThemeContext'; 
+import { useWallet } from '../src/WalletContext';
 
 const SenderDashboard = () => {
     // Accéder au contexte du thème
     const { theme } = useContext(ThemeContext);
+    const { account } = useWallet();
 
     const settings = {
         dots: true,
@@ -31,7 +33,9 @@ const SenderDashboard = () => {
                 breakpoint: 769,
                 settings: {
                     slidesToShow: 2,
-                    slidesToScroll: 1,  
+                    slidesToScroll: 1, 
+                    swipe: true,
+                    draggable: true 
                 }
             },
             {
@@ -39,10 +43,17 @@ const SenderDashboard = () => {
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
+                    swipe: true,
+                    draggable: true
                 },
             },
         ],
     };
+
+      // Si l'utilisateur n'est pas connecté, on n'affiche pas le contenu dynamique (dashboard)
+  if (!account || account === null) {
+    return <div>Please connect your wallet to access the dashboard.</div>;
+  }
 
     return (
         <div className='dashboards-container'>

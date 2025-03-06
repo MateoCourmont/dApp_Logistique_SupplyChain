@@ -1,33 +1,18 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { ThemeContext } from '../src/ThemeContext';
-import { ethers } from "ethers";
+import { useWallet } from '../src/WalletContext';
 
 const Navbar = () => {
   const { theme, toggleTheme } = useContext(ThemeContext); 
-  const [account, setAccount] = useState(null);
+  const { account, connectWallet, disconnectWallet } = useWallet();
 
-  // Fonction pour se connecter à MetaMask
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-        setAccount(address);
-      } catch (error) {
-        console.error("Error connecting to MetaMask:", error);
-        alert("Connection to MetaMask failed");
-      }
+  useEffect(() => {
+    if (account) {
+      console.log("Wallet connected:", account);
     } else {
-      alert("Please install MetaMask!");
+      console.log("Wallet disconnected");
     }
-  };
-
-  // Pas vraiment une deconnexion pour le moment
-  const disconnectWallet = () => {
-    setAccount(null); // Réinitialiser l'état du compte
-  };
+  }, [account]);
 
   return (
     <header>
