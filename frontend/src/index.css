@@ -199,6 +199,7 @@ nav {
   width: 900px;
   height: auto;
   border-radius: 1rem;
+  object-fit: cover;
 }
 
 /*MainSection*/
@@ -334,7 +335,6 @@ nav {
   .hero-img {
     width: 1000px;
     height: 600px;
-    object-fit: cover;
   }
 
   .hero-left {
